@@ -1,3 +1,5 @@
+
+          
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -88,7 +90,7 @@
         }
 
         audio {
-            display: none; /* Nasconde il player nativo brutto da vedere */
+            display: none;
         }
     </style>
 </head>
@@ -101,14 +103,14 @@
             </svg>
         </div>
         
-        <h1 id="status-title">Riproduzione in corso...</h1>
-        <p id="status-desc">Avvicina i canali audio o premi il pulsante sotto se non senti nulla.</p>
+        <h1 id="status-title">Caricamento audio...</h1>
+        <p id="status-desc">Il file sta per partire. Se non senti nulla, premi il pulsante sotto.</p>
 
         <button class="btn" id="play-btn" onclick="forzaRiproduzione()">Ascolta Audio</button>
     </div>
 
-    <audio id="myAudio" preload="auto">
-        <source src="https://docs.google.com/uc?export=download&id=1dTEddPD1nfeH8_AUQSrmw5wgr8M3Zm7T" type="audio/mpeg">
+    <audio id="myAudio" preload="auto" autoplay>
+        <source src="20260617-150134.mp3" type="audio/mpeg">
         Il tuo browser non supporta l'elemento audio.
     </audio>
 
@@ -118,33 +120,35 @@
         const desc = document.getElementById('status-desc');
         const btn = document.getElementById('play-btn');
 
-        // Tentativo di autoplay immediato al caricamento della pagina
+        // Funzione per aggiornare la grafica quando l'audio parte davvero
+        function audioInRiproduzione() {
+            title.innerText = "In riproduzione...";
+            desc.innerText = "L'audio è partito in automatico.";
+            btn.innerText = "Pausa";
+        }
+
+        // Tenta l'esecuzione immediata al caricamento della pagina
         window.addEventListener('DOMContentLoaded', () => {
-            // Proviamo a far partire l'audio
             let playPromise = audio.play();
 
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
-                    // L'autoplay ha funzionato! Aggiorna l'interfaccia grafica
-                    title.innerText = "In riproduzione";
-                    desc.innerText = "L'audio è partito correttamente.";
-                    btn.innerText = "Pausa";
+                    // L'autoplay ha funzionato senza blocchi
+                    audioInRiproduzione();
                 }).catch(error => {
-                    // L'autoplay è stato bloccato dal browser (comportamento normale su smartphone)
+                    // Il browser ha bloccato l'autoplay in background
                     title.innerText = "Audio Pronto";
-                    desc.innerText = "Tocca il pulsante qui sotto per avviare la riproduzione.";
+                    desc.innerText = "Tocca lo schermo o il pulsante qui sotto per avviare l'ascolto.";
                     btn.innerText = "Riproduci Audio";
                 });
             }
         });
 
-        // Funzione associata al pulsante per forzare l'avvio o metterlo in pausa
+        // Gestione manuale del pulsante (o sblocco al primo tocco)
         function forzaRiproduzione() {
             if (audio.paused) {
                 audio.play();
-                title.innerText = "In riproduzione";
-                desc.innerText = "Ascolto avviato.";
-                btn.innerText = "Pausa";
+                audioInRiproduzione();
             } else {
                 audio.pause();
                 title.innerText = "In pausa";
@@ -152,7 +156,14 @@
                 btn.innerText = "Riproduci Audio";
             }
         }
+
+        // Trucco aggiuntivo: se l'utente fa un qualsiasi "tap" sulla pagina, proviamo a far partire l'audio
+        document.body.addEventListener('click', () => {
+            if (audio.paused && title.innerText === "Audio Pronto") {
+                audio.play();
+                audioInRiproduzione();
+            }
+        }, { once: true }); // Si attiva solo al primo click
     </script>
 </body>
-          </html>
-          
+</html>
