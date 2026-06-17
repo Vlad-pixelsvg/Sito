@@ -1,5 +1,3 @@
-
-          
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -24,6 +22,9 @@
             color: #ffffff;
             padding: 20px;
             text-align: center;
+            /* Rende l'intera pagina visibilmente interattiva */
+            cursor: pointer; 
+            user-select: none;
         }
 
         .container {
@@ -36,6 +37,25 @@
             padding: 40px 30px;
             border-radius: 24px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            /* Impedisce che i click sul container creino conflitti */
+            pointer-events: none; 
+        }
+
+        /* Permette al pulsante di mantenere i suoi effetti grafici (es. active) se cliccato direttamente */
+        .btn {
+            pointer-events: auto; 
+            display: inline-block;
+            width: 100%;
+            padding: 16px 24px;
+            background-color: #ffffff;
+            color: #1e3c72;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .icon-wrapper {
@@ -69,21 +89,6 @@
             line-height: 1.5;
         }
 
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 16px 24px;
-            background-color: #ffffff;
-            color: #1e3c72;
-            border: none;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
         .btn:active {
             transform: scale(0.98);
             background-color: #f0f0f0;
@@ -104,9 +109,9 @@
         </div>
         
         <h1 id="status-title">Caricamento audio...</h1>
-        <p id="status-desc">Il file sta per partire. Se non senti nulla, premi il pulsante sotto.</p>
+        <p id="status-desc">Il file sta per partire. Se non senti nulla, tocca un punto qualsiasi dello schermo.</p>
 
-        <button class="btn" id="play-btn" onclick="forzaRiproduzione()">Ascolta Audio</button>
+        <button class="btn" id="play-btn">Ascolta Audio</button>
     </div>
 
     <audio id="myAudio" preload="auto" autoplay>
@@ -120,50 +125,53 @@
         const desc = document.getElementById('status-desc');
         const btn = document.getElementById('play-btn');
 
-        // Funzione per aggiornare la grafica quando l'audio parte davvero
+        // Aggiorna l'interfaccia quando l'audio è in riproduzione
         function audioInRiproduzione() {
             title.innerText = "In riproduzione...";
-            desc.innerText = "L'audio è partito in automatico.";
+            desc.innerText = "Tocca ovunque per mettere in pausa.";
             btn.innerText = "Pausa";
         }
 
-        // Tenta l'esecuzione immediata al caricamento della pagina
+        // Aggiorna l'interfaccia quando l'audio viene messo in pausa
+        function audioInPausa() {
+            title.innerText = "In pausa";
+            desc.innerText = "Tocca ovunque per riprendere l'ascolto.";
+            btn.innerText = "Riproduci Audio";
+        }
+
+        // Tenta l'autoplay al caricamento della pagina
         window.addEventListener('DOMContentLoaded', () => {
             let playPromise = audio.play();
 
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
-                    // L'autoplay ha funzionato senza blocchi
                     audioInRiproduzione();
                 }).catch(error => {
-                    // Il browser ha bloccato l'autoplay in background
+                    // Autoplay bloccato dal browser (comune sui tag NFC/QR Code)
                     title.innerText = "Audio Pronto";
-                    desc.innerText = "Tocca lo schermo o il pulsante qui sotto per avviare l'ascolto.";
+                    desc.innerText = "Tocca in un punto qualsiasi dello schermo per avviare l'ascolto.";
                     btn.innerText = "Riproduci Audio";
                 });
             }
         });
 
-        // Gestione manuale del pulsante (o sblocco al primo tocco)
-        function forzaRiproduzione() {
+        // Funzione unica per gestire il Play/Pause alternato
+        function gestisciRiproduzione() {
             if (audio.paused) {
                 audio.play();
                 audioInRiproduzione();
             } else {
                 audio.pause();
-                title.innerText = "In pausa";
-                desc.innerText = "Riproduzione sospesa.";
-                btn.innerText = "Riproduci Audio";
+                audioInPausa();
             }
         }
 
-        // Trucco aggiuntivo: se l'utente fa un qualsiasi "tap" sulla pagina, proviamo a far partire l'audio
-        document.body.addEventListener('click', () => {
-            if (audio.paused && title.innerText === "Audio Pronto") {
-                audio.play();
-                audioInRiproduzione();
-            }
-        }, { once: true }); // Si attiva solo al primo click
+        /* ASCOLTATORE GLOBALE: Cattura il click su TUTTO il body.
+           Usiamo e.stopPropagation() per evitare conflitti se si clicca direttamente sul pulsante.
+        */
+        document.body.addEventListener('click', (e) => {
+            gestisciRiproduzione();
+        });
     </script>
 </body>
 </html>
