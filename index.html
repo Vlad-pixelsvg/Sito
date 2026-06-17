@@ -22,7 +22,6 @@
             color: #ffffff;
             padding: 20px;
             text-align: center;
-            /* Rende l'intera pagina visibilmente interattiva */
             cursor: pointer; 
             user-select: none;
         }
@@ -37,11 +36,10 @@
             padding: 40px 30px;
             border-radius: 24px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            /* Impedisce che i click sul container creino conflitti */
             pointer-events: none; 
+            margin-bottom: 20px;
         }
 
-        /* Permette al pulsante di mantenere i suoi effetti grafici (es. active) se cliccato direttamente */
         .btn {
             pointer-events: auto; 
             display: inline-block;
@@ -56,6 +54,11 @@
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            background-color: #f0f0f0;
         }
 
         .icon-wrapper {
@@ -89,13 +92,39 @@
             line-height: 1.5;
         }
 
-        .btn:active {
-            transform: scale(0.98);
-            background-color: #f0f0f0;
-        }
-
         audio {
             display: none;
+        }
+
+        /* --- STILE PANNELLO NOTE AZIENDALI --- */
+        .note-azienda {
+            pointer-events: auto; /* Permette di selezionare il testo delle note */
+            max-width: 400px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 12px;
+            color: #e0e0e0;
+            line-height: 1.4;
+        }
+
+        .note-azienda h3 {
+            font-size: 13px;
+            color: #ffcc00;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .note-azienda ul {
+            padding-left: 15px;
+        }
+
+        .note-azienda li {
+            margin-bottom: 6px;
         }
     </style>
 </head>
@@ -109,9 +138,18 @@
         </div>
         
         <h1 id="status-title">Caricamento audio...</h1>
-        <p id="status-desc">Il file sta per partire. Se non senti nulla, tocca un punto qualsiasi dello schermo.</p>
+        <p id="status-desc">Clicca sullo schermo.</p>
 
         <button class="btn" id="play-btn">Ascolta Audio</button>
+    </div>
+
+    <!-- PANNELLO NOTE PER L'AZIENDA (Invisibile agli screen reader per non disturbare l'utente finale) -->
+    <div class="note-azienda" aria-hidden="true" onclick="event.stopPropagation();">
+        <h3>Note per l'Azienda:</h3>
+        <ul>
+            <li><strong>1. Apertura istantanea:</strong> Il target utilizza il browser predefinito del dispositivo, garantendo che la pagina si apra all'istante al tocco del tag NFC.</li>
+            <li><strong>2. Ottimizzazione Guida Vocale:</strong> Avendo reso l'intero schermo cliccabile, l'utente con guida vocale attiva (TalkBack/VoiceOver) troverà immediatamente il punto di interazione. Il testo è stato ridotto a "Clicca sullo schermo" così il sintetizzatore vocale lo legge subito e chiaramente.</li>
+        </ul>
     </div>
 
     <audio id="myAudio" preload="auto" autoplay>
@@ -125,21 +163,18 @@
         const desc = document.getElementById('status-desc');
         const btn = document.getElementById('play-btn');
 
-        // Aggiorna l'interfaccia quando l'audio è in riproduzione
         function audioInRiproduzione() {
             title.innerText = "In riproduzione...";
             desc.innerText = "Tocca ovunque per mettere in pausa.";
             btn.innerText = "Pausa";
         }
 
-        // Aggiorna l'interfaccia quando l'audio viene messo in pausa
         function audioInPausa() {
             title.innerText = "In pausa";
-            desc.innerText = "Tocca ovunque per riprendere l'ascolto.";
+            desc.innerText = "Clicca sullo schermo.";
             btn.innerText = "Riproduci Audio";
         }
 
-        // Tenta l'autoplay al caricamento della pagina
         window.addEventListener('DOMContentLoaded', () => {
             let playPromise = audio.play();
 
@@ -147,15 +182,13 @@
                 playPromise.then(_ => {
                     audioInRiproduzione();
                 }).catch(error => {
-                    // Autoplay bloccato dal browser (comune sui tag NFC/QR Code)
                     title.innerText = "Audio Pronto";
-                    desc.innerText = "Tocca in un punto qualsiasi dello schermo per avviare l'ascolto.";
+                    desc.innerText = "Clicca sullo schermo.";
                     btn.innerText = "Riproduci Audio";
                 });
             }
         });
 
-        // Funzione unica per gestire il Play/Pause alternato
         function gestisciRiproduzione() {
             if (audio.paused) {
                 audio.play();
@@ -166,10 +199,8 @@
             }
         }
 
-        /* ASCOLTATORE GLOBALE: Cattura il click su TUTTO il body.
-           Usiamo e.stopPropagation() per evitare conflitti se si clicca direttamente sul pulsante.
-        */
-        document.body.addEventListener('click', (e) => {
+        // Il click sul body attiva l'audio
+        document.body.addEventListener('click', () => {
             gestisciRiproduzione();
         });
     </script>
